@@ -176,7 +176,7 @@ This research is supported by an Alan Turing Institute award TU/B/000096 under E
 
 # 4B25 Coursework 4: Activity Classifier with Uncertainty Estimates
 
-This section corresponds to the work for the 4B25 coursework project. Here we provide an overview of the implementation details related to it. High level details are explained in the attached report (`hsa28-coursework4.pdf`). To implement the coursework, only `boot.c` had to be edited. Initially, all the default functionality of the Warp firmware was included, but as more functions that correspond to the activity template waveforms were added the `.text` section began to overflow and so everything unrelated to the activity classifier was removed to free up more program space.
+This section corresponds to the work for the 4B25 coursework project. Here we provide an overview of the implementation details related to it. High level details are explained in the attached report (`hsa28-coursework-4.pdf`). To implement the coursework, only `boot.c` had to be edited. Initially, all the default functionality of the Warp firmware was included, but as more functions that correspond to the activity template waveforms were added the `.text` section began to overflow and so everything unrelated to the activity classifier was removed to free up more program space.
 
 Therefore, the Warp menu now only has this option:
 
