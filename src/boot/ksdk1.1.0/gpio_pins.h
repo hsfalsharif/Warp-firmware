@@ -87,6 +87,7 @@ enum _gpio_pins
 		kWarpPinUnusedPTA8			= GPIO_MAKE_PIN(HW_GPIOA, 8),
 		kWarpPinUnusedPTA9			= GPIO_MAKE_PIN(HW_GPIOA, 9),
 		kWarpPinUnusedPTA12			= GPIO_MAKE_PIN(HW_GPIOA, 12),
+		kWarpPinSI4705_nRST			= GPIO_MAKE_PIN(HW_GPIOB, 2) // Added this line
 	#else
 		#if (WARP_BUILD_ENABLE_GLAUX_VARIANT)
 			kGlauxPinFlash_SPI_nCS		= GPIO_MAKE_PIN(HW_GPIOB, 2),

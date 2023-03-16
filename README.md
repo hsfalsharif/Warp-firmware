@@ -172,3 +172,63 @@ This research is supported by an Alan Turing Institute award TU/B/000096 under E
 ----
 ### Notes
 <sup>1</sup>&nbsp; On some Unix platforms, the `JLinkRTTClient` has a double echo of characters you type in. You can prevent this by configuring your terminal program to not echo the characters you type. To achieve this on `bash`, use `stty -echo` from the terminal. Alternatively, rather than using the `JLinkRTTClient`, you can use a `telnet` program: `telnet localhost 19021`. This avoids the JLink RTT Client's "double echo" behavior but you will then need a carriage return (&crarr;) for your input to be sent to the board. Also see [Python SEGGER RTT library from Square, Inc.](https://github.com/square/pylink/blob/master/examples/rtt.py) (thanks to [Thomas Garry](https://github.com/tidge27) for the pointer).
+
+
+# 4B25 Coursework 4: Activity Classifier with Uncertainty Estimates
+
+This section corresponds to the work for the 4B25 coursework project. Here we provide an overview of the implementation details related to it. High level details are explained in the attached report (`hsa28-coursework4.pdf`). To implement the coursework, only `boot.c` had to be edited. Initially, all the default functionality of the Warp firmware was included, but as more functions that correspond to the activity template waveforms were added the `.text` section began to overflow and so everything unrelated to the activity classifier was removed to free up more program space.
+
+Therefore, the Warp menu now only has this option:
+
+````
+- 'v': classify activity using accelerometer.
+````
+Once `v` is pressed, the user can enter any key to begin the classification test. When the test begins, 461 accelerometer samples are taken and the user can perform any of the defined actions and a result will be given accordingly. The code for this can be found starting from line `1670` in `boot.c`.
+
+The upper and lower limit arrays that correspond to the activity template waveforms (see report) are pre-computed externally in python and then stored back into the microcontroller. The python notebooks used for this are found under `CW4_code`. The captured waveforms used to compute the limits are found under `CW4_code/CW4_data`.
+
+The computed arrays are still too large to fit in their own individual functions in the microcontroller, so they had to be split across two different functions. The required function for comparison is called based on the current sample index.
+
+These functions are:
+
+Pendulum Swing:
+- `checkActivityPendSwingUpperXFirstHalf`
+- `checkActivityPendSwingUpperXSecondHalf`
+- `checkActivityPendSwingLowerXFirstHalf`
+- `checkActivityPendSwingLowerXSecondHalf`
+- `checkActivityPendSwingUpperYFirstHalf`
+- `checkActivityPendSwingUpperYSecondHalf`
+- `checkActivityPendSwingLowerYFirstHalf`
+- `checkActivityPendSwingLowerYSecondHalf`
+- `checkActivityPendSwingUpperZFirstHalf`
+- `checkActivityPendSwingUpperZSecondHalf`
+- `checkActivityPendSwingLowerZFirstHalf`
+- `checkActivityPendSwingLowerZSecondHalf`
+
+Side-to-side hand-wave:
+- `checkActivityHandWaveS2SUpperXFirstHalf`
+- `checkActivityHandWaveS2SUpperXSecondHalf`
+- `checkActivityHandWaveS2SLowerXFirstHalf`
+- `checkActivityHandWaveS2SLowerXSecondHalf`
+- `checkActivityHandWaveS2SUpperYFirstHalf`
+- `checkActivityHandWaveS2SUpperYSecondHalf`
+- `checkActivityHandWaveS2SLowerYFirstHalf`
+- `checkActivityHandWaveS2SLowerYSecondHalf`
+- `checkActivityHandWaveS2SUpperZFirstHalf`
+- `checkActivityHandWaveS2SUpperZSecondHalf`
+- `checkActivityHandWaveS2SLowerZFirstHalf`
+- `checkActivityHandWaveS2SLowerZSecondHalf`
+
+Forwards and backwards hand-wave:
+- `checkActivityHandWaveFBUpperXFirstHalf`
+- `checkActivityHandWaveFBUpperXSecondHalf`
+- `checkActivityHandWaveFBLowerXFirstHalf`
+- `checkActivityHandWaveFBLowerXSecondHalf`
+- `checkActivityHandWaveFBUpperYFirstHalf`
+- `checkActivityHandWaveFBUpperYSecondHalf`
+- `checkActivityHandWaveFBLowerYFirstHalf`
+- `checkActivityHandWaveFBLowerYSecondHalf`
+- `checkActivityHandWaveFBUpperZFirstHalf`
+- `checkActivityHandWaveFBUpperZSecondHalf`
+- `checkActivityHandWaveFBLowerZFirstHalf`
+- `checkActivityHandWaveFBLowerZSecondHalf`

@@ -24,7 +24,8 @@ enum
 {
 	kSSD1331PinMOSI		= GPIO_MAKE_PIN(HW_GPIOA, 8),
 	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
-	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
+	//kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
+	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 10),
 	kSSD1331PinDC		= GPIO_MAKE_PIN(HW_GPIOA, 12),
 	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
 };
@@ -49,12 +50,15 @@ writeCommand(uint8_t commandByte)
 	GPIO_DRV_ClearPinOutput(kSSD1331PinDC);
 
 	payloadBytes[0] = commandByte;
+	
 	status = SPI_DRV_MasterTransferBlocking(0	/* master instance */,
 					NULL		/* spi_master_user_config_t */,
 					(const uint8_t * restrict)&payloadBytes[0],
 					(uint8_t * restrict)&inBuffer[0],
 					1		/* transfer size */,
 					1000		/* timeout in microseconds (unlike I2C which is ms) */);
+
+	GPIO_DRV_SetPinOutput(kSSD1331PinDC);
 
 	/*
 	 *	Drive /CS high
@@ -77,17 +81,17 @@ devSSD1331init(void)
 	PORT_HAL_SetMuxMode(PORTA_BASE, 8u, kPortMuxAlt3);
 	PORT_HAL_SetMuxMode(PORTA_BASE, 9u, kPortMuxAlt3);
 
-	enableSPIpins();
-
+	//enableSPIpins();
+	warpEnableSPIpins();
 	/*
 	 *	Override Warp firmware's use of these pins.
 	 *
 	 *	Reconfigure to use as GPIO.
 	 */
-	PORT_HAL_SetMuxMode(PORTB_BASE, 13u, kPortMuxAsGpio);
+	//PORT_HAL_SetMuxMode(PORTB_BASE, 13u, kPortMuxAsGpio);
+	PORT_HAL_SetMuxMode(PORTB_BASE, 10u, kPortMuxAlt3);
 	PORT_HAL_SetMuxMode(PORTA_BASE, 12u, kPortMuxAsGpio);
 	PORT_HAL_SetMuxMode(PORTB_BASE, 0u, kPortMuxAsGpio);
-
 
 	/*
 	 *	RST high->low->high.
@@ -99,10 +103,9 @@ devSSD1331init(void)
 	GPIO_DRV_SetPinOutput(kSSD1331PinRST);
 	OSA_TimeDelay(100);
 
-	/*
-	 *	Initialization sequence, borrowed from https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino
-	 */
 	writeCommand(kSSD1331CommandDISPLAYOFF);	// 0xAE
+	writeCommand(kSSD1331CommandLOCK);	// 0xFD
+	writeCommand(0x12);
 	writeCommand(kSSD1331CommandSETREMAP);		// 0xA0
 	writeCommand(0x72);				// RGB Color
 	writeCommand(kSSD1331CommandSTARTLINE);		// 0xA1
@@ -116,7 +119,7 @@ devSSD1331init(void)
 	writeCommand(0x8E);
 	writeCommand(kSSD1331CommandPOWERMODE);		// 0xB0
 	writeCommand(0x0B);
-	writeCommand(kSSD1331CommandPRECHARGE);		// 0xB1
+	writeCommand(kSSD1331CommandPHASEPERIODSADJUSTMENT); // 0xB1
 	writeCommand(0x31);
 	writeCommand(kSSD1331CommandCLOCKDIV);		// 0xB3
 	writeCommand(0xF0);				// 7:4 = Oscillator Frequency, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
@@ -124,7 +127,7 @@ devSSD1331init(void)
 	writeCommand(0x64);
 	writeCommand(kSSD1331CommandPRECHARGEB);	// 0x8B
 	writeCommand(0x78);
-	writeCommand(kSSD1331CommandPRECHARGEA);	// 0x8C
+	writeCommand(kSSD1331CommandPRECHARGEC);	// 0x8C
 	writeCommand(0x64);
 	writeCommand(kSSD1331CommandPRECHARGELEVEL);	// 0xBB
 	writeCommand(0x3A);
@@ -133,12 +136,18 @@ devSSD1331init(void)
 	writeCommand(kSSD1331CommandMASTERCURRENT);	// 0x87
 	writeCommand(0x06);
 	writeCommand(kSSD1331CommandCONTRASTA);		// 0x81
-	writeCommand(0x91);
+	writeCommand(0xFF);
 	writeCommand(kSSD1331CommandCONTRASTB);		// 0x82
-	writeCommand(0x50);
+	writeCommand(0xFF);
 	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
-	writeCommand(0x7D);
+	writeCommand(0xFF);
 	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
+	writeCommand(kSSD1331CommandSETCOLUMN);
+	writeCommand(0x00);
+	writeCommand(95);
+	writeCommand(kSSD1331CommandSETROW);
+	writeCommand(0x00);
+	writeCommand(63);
 
 	/*
 	 *	To use fill commands, you will have to issue a command to the display to enable them. See the manual.
@@ -155,14 +164,23 @@ devSSD1331init(void)
 	writeCommand(0x5F);
 	writeCommand(0x3F);
 
-
-
 	/*
 	 *	Any post-initialization drawing commands go here.
 	 */
 	//...
-
-
+	writeCommand(0x22);	// Draw Rectangle
+	writeCommand(0x00); // Start at Column 0
+	writeCommand(0x00); // Start at Row 0
+	writeCommand(95);   // End at Column 95
+	writeCommand(63);	// End at Row 63
+	// Outline colour
+	writeCommand(0);	// R
+	writeCommand(0xFF);	// G
+	writeCommand(0);	// B
+	// Fill colour
+	writeCommand(0);	// R
+	writeCommand(0xFF);	// G
+	writeCommand(0);	// B
 
 	return 0;
 }
